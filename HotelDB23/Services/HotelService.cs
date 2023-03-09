@@ -115,7 +115,6 @@ namespace HotelDB23.Services
             return false;
         }
 
-
         public bool UpdateHotel(Hotel hotel, int hotelNr)
         {
             using (SqlConnection connection = new SqlConnection(connectionString))

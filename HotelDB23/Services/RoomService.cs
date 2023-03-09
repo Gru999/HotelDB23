@@ -20,8 +20,9 @@ namespace HotelDB23.Services
                                     "begin delete from Booking where Hotel_No = @hotelNr and Room_No = @roomNr" +
                                           "delete from Room where Hotel_No = @hotelNr and Room_No = @roomNr" +
                                     "end";
+        private string getRoomFromId = "select * from Room where Room_No = @roomNr and Hotel_No = @hotelNr";
 
-        
+
         public List<Room> GetAllRoom(int hotelNr)
         {
             List<Room> rooms = new List<Room>();
@@ -37,7 +38,6 @@ namespace HotelDB23.Services
                     {
                         int roomNo = reader.GetInt32(0);
                         int hotelNo = reader.GetInt32(1);
-                        //problem with getchar
                         char type = reader.GetString(2).First();
                         double price = reader.GetDouble(3);
                         Room r = new Room(roomNo, hotelNo, type, price);
@@ -58,7 +58,35 @@ namespace HotelDB23.Services
 
         public Room GetRoomFromId(int roomNr, int hotelNr)
         {
-            throw new NotImplementedException();
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                try
+                {
+                    SqlCommand command = new SqlCommand(getRoomFromId, connection);
+                    command.Parameters.AddWithValue("@roomNr", roomNr);
+                    command.Parameters.AddWithValue("@hotelNr", hotelNr);
+                    command.Connection.Open();
+                    SqlDataReader reader = command.ExecuteReader();
+                    if (reader.Read())
+                    {
+                        int roomNo = reader.GetInt32(0);
+                        int hotelNo = reader.GetInt32(1);
+                        char type = reader.GetString(2).First();
+                        double price = reader.GetDouble(3);
+                        Room r = new Room(roomNo, hotelNo, type, price);
+                        return r;
+                    }
+                }
+                catch (SqlException sqlEx)
+                {
+                    Console.WriteLine("Database error " + sqlEx.Message);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Generel fejl " + ex.Message);
+                }
+            }
+            return null;
         }
 
         public bool CreateRoom(int hotelNr, Room room)
@@ -106,7 +134,7 @@ namespace HotelDB23.Services
                     SqlDataReader reader = command.ExecuteReader();
                     if (reader.Read())
                     {
-                        return GetRoomFromId(hotelNr);
+                        return GetRoomFromId(roomNr, hotelNr);
                     }
                 }
                 catch (SqlException sqlEx)
